@@ -5,24 +5,38 @@ Real-time retail analytics from raw CCTV footage → live store metrics.
 
 ---
 
-## Quick Start (5 commands)
+## 🚀 Easiest Way to Run (Windows)
+
+If you are evaluating this on a Windows machine, you can launch the entire system in just a few clicks:
+
+1. **Clone the repository** and open the `store-intelligence` folder.
+2. **Double-click `start.bat`**. This will automatically:
+   - Start the FastAPI Backend on port 8000.
+   - Start the Live Dashboard on port 3000.
+3. Open your browser and go to **http://localhost:3000** to see the beautiful SaaS Dashboard.
+4. **Start the AI Detection Pipelines** by opening a terminal in the folder and running:
+   ```powershell
+   venv\Scripts\python.exe pipeline/detect.py --video "..\CCTV Footage\CAM 1.mp4" --camera-id CAM_ENTRY_01 --store-id STORE_BLR_001 --clip-start 2026-04-10T11:00:00Z --layout data/store_layout.json
+   ```
+   *(Repeat for CAM 2 to 5 to run them simultaneously. The videos will loop infinitely to provide a continuous live demo!)*
+
+---
+
+## 🐳 Docker Quick Start (Cross-Platform)
 
 ```bash
 # 1. Clone and enter project
 git clone <repo-url> && cd store-intelligence
 
-# 2. Set your Groq API key
+# 2. Set your Groq API key (Optional for Staff Detection)
 cp .env.example .env
 # Edit .env and set GROQ_API_KEY=your_key_here
 
-# 3. Start the API
+# 3. Start the API and Dashboard
 docker compose up -d
 
 # 4. Run the detection pipeline against the CCTV clips
 FOOTAGE_DIR="/path/to/CCTV Footage" docker compose run --rm pipeline
-
-# 5. View live metrics
-curl http://localhost:8000/stores/STORE_BLR_001/metrics | python -m json.tool
 ```
 
 The API is available at **http://localhost:8000** | Docs at **http://localhost:8000/docs**
