@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: store-intelligence
+    env: docker
+    dockerfilePath: ./Dockerfile.api
+    plan: free

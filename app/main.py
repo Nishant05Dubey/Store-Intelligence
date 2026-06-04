@@ -313,3 +313,8 @@ async def process_video(req: ProcessVideoRequest):
         logger.error("process_video.failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
+from fastapi.staticfiles import StaticFiles
+import os
+
+if os.path.exists("dashboard"):
+    app.mount("/", StaticFiles(directory="dashboard", html=True), name="dashboard")
