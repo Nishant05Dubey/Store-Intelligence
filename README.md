@@ -9,6 +9,11 @@ Physical retail stores have a massive analytics blind spot compared to e-commerc
 
 **Store Intelligence** bridges this gap. It is an end-to-end AI system that ingests raw CCTV video feeds, detects and tracks shoppers (while actively ignoring staff in uniform), maps their paths across physical store zones, and streams these events in real-time to a live dashboard. For the first time, offline stores get a live **Conversion Funnel**, **Zone Heatmaps**, and **Active Anomaly Alerts**.
 
+### 📸 Live Dashboard Preview
+![Live CCTV Detection & Metrics](docs/assets/dashboard_1.png)
+![Conversion Funnel & Anomalies](docs/assets/dashboard_2.png)
+![Zone Heatmap & Dwell Times](docs/assets/dashboard_3.png)
+
 ---
 
 ## 🧠 System Architecture & Workflow
