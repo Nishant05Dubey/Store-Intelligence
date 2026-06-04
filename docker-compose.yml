@@ -1,0 +1,90 @@
+version: "3.9"
+
+services:
+  # -----------------------------------------------------------------------
+  # Store Intelligence API
+  # -----------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: store-intelligence-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_PATH=/data/store_intelligence.db
+      - POS_CSV_PATH=/data/pos_transactions.csv
+      - STORE_LAYOUT_PATH=/data/store_layout.json
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    volumes:
+      - store_data:/data
+      - ./data:/data:ro  # Mount local data files read-only
+      - ${FOOTAGE_DIR:-../CCTV Footage}:/footage:ro
+      - ./dashboard:/app/dashboard
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - store-net
+
+  # -----------------------------------------------------------------------
+  # Detection Pipeline (runs after API is healthy)
+  # -----------------------------------------------------------------------
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile.pipeline
+    container_name: store-intelligence-pipeline
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      - API_BASE_URL=http://api:8000
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - STORE_LAYOUT_PATH=/data/store_layout.json
+      - FOOTAGE_DIR=/footage
+    volumes:
+      - ./data:/data:ro
+      - ${FOOTAGE_DIR:-../CCTV Footage}:/footage:ro
+      - pipeline_output:/output
+    command: >
+      bash pipeline/run.sh
+    profiles:
+      - pipeline
+    networks:
+      - store-net
+
+  # -----------------------------------------------------------------------
+  # Live Dashboard (Part E bonus)
+  # -----------------------------------------------------------------------
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: store-intelligence-dashboard
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      - API_BASE_URL=http://api:8000
+    volumes:
+      - ./dashboard:/app/dashboard
+      - ${FOOTAGE_DIR:-../CCTV Footage}:/app/dashboard/footage:ro
+    profiles:
+      - dashboard
+    networks:
+      - store-net
+
+volumes:
+  store_data:
+  pipeline_output:
+
+networks:
+  store-net:
+    driver: bridge

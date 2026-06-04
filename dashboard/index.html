@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Store Intelligence — Live Dashboard | Purplle Brigade Road</title>
+  <meta name="description" content="Real-time store analytics dashboard for Purplle Brigade Road Bangalore. Live visitor count, conversion rate, zone heatmap, and anomaly detection." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --purple-900: #3b0764;
+      --purple-800: #581c87;
+      --purple-700: #7e22ce;
+      --purple-600: #9333ea;
+      --purple-500: #a855f7;
+      --purple-400: #c084fc;
+      --purple-300: #d8b4fe;
+      --purple-200: #e9d5ff;
+      --accent-pink: #db2777;
+      --accent-teal: #0d9488;
+      --accent-amber: #d97706;
+      --accent-red: #dc2626;
+      --accent-green: #16a34a;
+      
+      --bg-base: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-card-hover: #ffffff;
+      --border: #e2e8f0;
+      
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated gradient background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at 20% 20%, rgba(147, 51, 234, 0.05) 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 80%, rgba(236, 72, 153, 0.03) 0%, transparent 50%),
+                  radial-gradient(ellipse at 50% 50%, rgba(20, 184, 166, 0.02) 0%, transparent 60%);
+      z-index: 0;
+      animation: bgPulse 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgPulse {
+      from { opacity: 0.7; transform: scale(1); }
+      to { opacity: 1; transform: scale(1.02); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+    
+    .header-left h1 .live-badge {
+      vertical-align: middle;
+      margin-bottom: 4px;
+    }
+
+    .header-left .subtitle {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      color: var(--text-secondary);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.error { background: var(--accent-red); animation: none; }
+    .status-dot.loading { background: var(--accent-amber); }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.3); }
+      50% { box-shadow: 0 0 0 5px rgba(22, 163, 74, 0); }
+    }
+
+    /* Grid */
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+    @media (max-width: 1200px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 900px) { .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; } }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+    }
+
+    .card:hover { 
+      transform: translateY(-3px); 
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+      border-color: #cbd5e1;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--purple-500), var(--accent-pink));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .card:hover::before { opacity: 1; }
+
+    .card-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .metric-value {
+      font-size: 2.75rem;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+
+    .metric-value.purple { color: var(--purple-600); }
+    .metric-value.teal { color: var(--accent-teal); }
+    .metric-value.amber { color: var(--accent-amber); }
+    .metric-value.red { color: var(--accent-red); }
+    .metric-value.green { color: var(--accent-green); }
+    .metric-value.pink { color: var(--accent-pink); }
+
+    .metric-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Live badge */
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(220, 38, 38, 0.1);
+      border: 1px solid rgba(220, 38, 38, 0.2);
+      color: var(--accent-red);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 100px;
+      margin-left: 12px;
+    }
+
+    .live-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--accent-red);
+      border-radius: 50%;
+      animation: pulseLive 1.5s infinite;
+    }
+    
+    @keyframes pulseLive {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.3); }
+      50% { box-shadow: 0 0 0 4px rgba(220, 38, 38, 0); }
+    }
+
+    /* Funnel */
+    .funnel-stage {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .funnel-bar-wrap {
+      flex: 1;
+      margin: 0 16px;
+    }
+
+    .funnel-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-transform: capitalize;
+      width: 110px;
+      font-weight: 600;
+    }
+
+    .funnel-bar-bg {
+      background: #f1f5f9;
+      border-radius: 100px;
+      height: 12px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .funnel-bar-fill {
+      height: 100%;
+      border-radius: 100px;
+      background: linear-gradient(90deg, var(--purple-500), var(--accent-pink));
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .funnel-count {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      width: 50px;
+      text-align: right;
+    }
+
+    .funnel-drop {
+      font-size: 0.75rem;
+      color: var(--accent-red);
+      width: 55px;
+      text-align: right;
+      font-weight: 600;
+    }
+
+    /* Heatmap */
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+    }
+
+    .heat-zone {
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      transition: all 0.3s;
+      cursor: default;
+      background: #ffffff;
+    }
+
+    .heat-zone:hover { 
+      transform: scale(1.03); 
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    .heat-zone-name {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .heat-score-bar {
+      height: 6px;
+      border-radius: 100px;
+      margin-bottom: 8px;
+    }
+
+    .heat-score-value {
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+
+    /* Anomalies */
+    .anomaly-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      transition: all 0.3s;
+      background: #ffffff;
+    }
+
+    .anomaly-item.INFO { background: #f0fdfa; border-color: #ccfbf1; }
+    .anomaly-item.WARN { background: #fffbeb; border-color: #fef3c7; }
+    .anomaly-item.CRITICAL { background: #fef2f2; border-color: #fee2e2; animation: criticalPulseBox 2s infinite; }
+
+    @keyframes criticalPulseBox {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.1); }
+      50% { box-shadow: 0 0 0 4px rgba(239,68,68,0); }
+    }
+
+    .anomaly-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 10px;
+      border-radius: 100px;
+      white-space: nowrap;
+    }
+
+    .anomaly-badge.INFO { background: #ccfbf1; color: #0f766e; }
+    .anomaly-badge.WARN { background: #fef3c7; color: #b45309; }
+    .anomaly-badge.CRITICAL { background: #fee2e2; color: #b91c1c; }
+
+    .anomaly-detail { font-size: 0.9rem; color: var(--text-primary); font-weight: 500; }
+    .anomaly-action { font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px; font-weight: 500; }
+
+    /* Section header */
+    .section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    /* Last updated */
+    .last-updated {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 24px;
+      text-align: right;
+      font-weight: 500;
+    }
+
+    /* Zone dwell table */
+    .dwell-row {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .dwell-row:last-child { border-bottom: none; }
+    .dwell-zone { font-size: 0.9rem; flex: 1; color: var(--text-secondary); font-weight: 500; }
+    .dwell-time { font-size: 1rem; font-weight: 700; color: var(--purple-600); }
+
+    /* Error state */
+    .error-state {
+      text-align: center;
+      padding: 48px;
+      color: var(--text-secondary);
+    }
+    .error-state .icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.8; }
+    .error-state p { font-size: 0.95rem; font-weight: 500; }
+
+    /* Number animation */
+    .counting { transition: transform 0.2s, opacity 0.2s; }
+    .counting.updating { opacity: 0.5; transform: scale(0.98); }
+
+    /* Tabs Navigation */
+    .tabs-nav {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background: #f1f5f9;
+    }
+    .tab-btn.active {
+      color: var(--purple-700);
+      background: #f3e8ff;
+    }
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .tab-content.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-weight: 500;
+      transition: border-color 0.2s;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--purple-400);
+      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+    }
+    .btn {
+      background: var(--purple-600);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(147, 51, 234, 0.2);
+    }
+    .btn:hover { 
+      background: var(--purple-700); 
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px rgba(147, 51, 234, 0.25);
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-left">
+      <h1>🏪 Store Intelligence <span class="live-badge">LIVE</span></h1>
+      <p class="subtitle">Purplle — Brigade Road, Bangalore · April 10, 2026</p>
+    </div>
+    <div class="status-indicator" id="status-indicator">
+      <div class="status-dot loading" id="status-dot"></div>
+      <span id="status-text">Connecting...</span>
+    </div>
+  </header>
+
+  <div id="tab-analytics" class="tab-content active" style="margin-top: 32px;">
+    <!-- KPI Row -->
+    <div class="grid-4">
+    <div class="card">
+      <div class="card-label">Unique Visitors Today</div>
+      <div class="metric-value purple counting" id="kpi-visitors">—</div>
+      <div class="metric-sub">Customers only · Excl. staff</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Conversion Rate</div>
+      <div class="metric-value teal counting" id="kpi-conversion">—</div>
+      <div class="metric-sub">Visitors → Purchase</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Current Queue Depth</div>
+      <div class="metric-value amber counting" id="kpi-queue">—</div>
+      <div class="metric-sub">At billing counter</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Abandonment Rate</div>
+      <div class="metric-value pink counting" id="kpi-abandon">—</div>
+      <div class="metric-sub">Left billing without buying</div>
+    </div>
+  </div>
+
+  <!-- Live CCTV Feeds -->
+  <div class="grid-3">
+    <div class="card" style="padding:0; overflow:hidden; position:relative; aspect-ratio: 16/9;">
+      <div class="section-header" style="position:absolute; top:16px; left:16px; background:rgba(255,255,255,0.9); padding:6px 12px; border-radius:8px; z-index:10; border-bottom:none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); backdrop-filter: blur(4px);">
+        <span class="section-title" style="margin:0;">CAM_ENTRY_01</span>
+      </div>
+      <img id="feed-entry" src="/feed_CAM_ENTRY_01.jpg" style="width:100%; height:100%; object-fit:cover; display:block; filter: brightness(0.95);" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmOGZhZmMiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5NGEzYjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPldhaXRpbmcgZm9yIGZlZWQuLi48L3RleHQ+PC9zdmc+'" />
+    </div>
+    <div class="card" style="padding:0; overflow:hidden; position:relative; aspect-ratio: 16/9;">
+      <div class="section-header" style="position:absolute; top:16px; left:16px; background:rgba(255,255,255,0.9); padding:6px 12px; border-radius:8px; z-index:10; border-bottom:none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); backdrop-filter: blur(4px);">
+        <span class="section-title" style="margin:0;">CAM_FLOOR_01</span>
+      </div>
+      <img id="feed-floor1" src="/feed_CAM_FLOOR_01.jpg" style="width:100%; height:100%; object-fit:cover; display:block; filter: brightness(0.95);" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmOGZhZmMiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5NGEzYjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPldhaXRpbmcgZm9yIGZlZWQuLi48L3RleHQ+PC9zdmc+'" />
+    </div>
+    <div class="card" style="padding:0; overflow:hidden; position:relative; aspect-ratio: 16/9;">
+      <div class="section-header" style="position:absolute; top:16px; left:16px; background:rgba(255,255,255,0.9); padding:6px 12px; border-radius:8px; z-index:10; border-bottom:none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); backdrop-filter: blur(4px);">
+        <span class="section-title" style="margin:0;">CAM_BILLING_01</span>
+      </div>
+      <img id="feed-billing" src="/feed_CAM_BILLING_01.jpg" style="width:100%; height:100%; object-fit:cover; display:block; filter: brightness(0.95);" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmOGZhZmMiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5NGEzYjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPldhaXRpbmcgZm9yIGZlZWQuLi48L3RleHQ+PC9zdmc+'" />
+    </div>
+    <div class="card" style="padding:0; overflow:hidden; position:relative; aspect-ratio: 16/9;">
+      <div class="section-header" style="position:absolute; top:16px; left:16px; background:rgba(255,255,255,0.9); padding:6px 12px; border-radius:8px; z-index:10; border-bottom:none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); backdrop-filter: blur(4px);">
+        <span class="section-title" style="margin:0;">CAM_FLOOR_02</span>
+      </div>
+      <img id="feed-floor2" src="/feed_CAM_FLOOR_02.jpg" style="width:100%; height:100%; object-fit:cover; display:block; filter: brightness(0.95);" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmOGZhZmMiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5NGEzYjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPldhaXRpbmcgZm9yIGZlZWQuLi48L3RleHQ+PC9zdmc+'" />
+    </div>
+    <div class="card" style="padding:0; overflow:hidden; position:relative; aspect-ratio: 16/9;">
+      <div class="section-header" style="position:absolute; top:16px; left:16px; background:rgba(255,255,255,0.9); padding:6px 12px; border-radius:8px; z-index:10; border-bottom:none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); backdrop-filter: blur(4px);">
+        <span class="section-title" style="margin:0;">CAM_FLOOR_03</span>
+      </div>
+      <img id="feed-floor3" src="/feed_CAM_FLOOR_03.jpg" style="width:100%; height:100%; object-fit:cover; display:block; filter: brightness(0.95);" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmOGZhZmMiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5NGEzYjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPldhaXRpbmcgZm9yIGZlZWQuLi48L3RleHQ+PC9zdmc+'" />
+    </div>
+  </div>
+
+  <!-- Funnel + Anomalies -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="section-header">
+        <span class="section-title">Conversion Funnel</span>
+      </div>
+      <div id="funnel-container">
+        <div class="error-state"><div class="icon">⏳</div><p>Loading...</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-header">
+        <span class="section-title">Active Anomalies</span>
+      </div>
+      <div id="anomalies-container">
+        <div class="error-state"><div class="icon">⏳</div><p>Loading...</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Heatmap + Dwell -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="section-header">
+        <span class="section-title">Zone Heatmap</span>
+      </div>
+      <div id="heatmap-container" class="heatmap-grid">
+        <div class="error-state"><div class="icon">⏳</div><p>Loading...</p></div>
+      </div>
+      <div id="heatmap-confidence" class="metric-sub" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-header">
+        <span class="section-title">Average Dwell by Zone</span>
+      </div>
+      <div id="dwell-container">
+        <div class="error-state"><div class="icon">⏳</div><p>Loading...</p></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="last-updated" id="last-updated">Last updated: —</p>
+  </div>
+</div>
+
+<script>
+  const API_BASE = window.location.hostname === 'localhost'
+    ? 'http://localhost:8000'
+    : `http://${window.location.hostname}:8000`;
+  const STORE_ID = 'STORE_BLR_001';
+  const REFRESH_MS = 3000;
+
+  function setStatus(state, text) {
+    const dot = document.getElementById('status-dot');
+    const label = document.getElementById('status-text');
+    dot.className = `status-dot ${state}`;
+    label.textContent = text;
+  }
+
+  function fmtPct(val) {
+    return (val * 100).toFixed(1) + '%';
+  }
+
+  function fmtMs(ms) {
+    if (!ms) return '0s';
+    const s = ms / 1000;
+    if (s < 60) return s.toFixed(0) + 's';
+    return (s / 60).toFixed(1) + 'm';
+  }
+
+  function heatColor(score) {
+    // 0 → cool blue/purple, 100 → hot pink
+    const r = Math.round(100 + (200 * score / 100));
+    const g = Math.round(10 + (20 * score / 100));
+    const b = Math.round(180 - (80 * score / 100));
+    return `rgb(${r},${g},${b})`;
+  }
+
+  async function fetchJSON(endpoint) {
+    const r = await fetch(`${API_BASE}${endpoint}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  }
+
+  function animateValue(el, newText) {
+    el.classList.add('updating');
+    setTimeout(() => {
+      el.textContent = newText;
+      el.classList.remove('updating');
+    }, 200);
+  }
+
+  function renderFunnel(data) {
+    const container = document.getElementById('funnel-container');
+    if (!data.stages || data.stages.length === 0) {
+      container.innerHTML = '<div class="error-state"><div class="icon">📭</div><p>No funnel data yet</p></div>';
+      return;
+    }
+    const maxCount = data.stages[0].count || 1;
+    container.innerHTML = data.stages.map(stage => `
+      <div class="funnel-stage">
+        <div class="funnel-label">${stage.stage.replace('_', ' ')}</div>
+        <div class="funnel-bar-wrap">
+          <div class="funnel-bar-bg">
+            <div class="funnel-bar-fill" style="width:${(stage.count / maxCount * 100)}%"></div>
+          </div>
+        </div>
+        <div class="funnel-count">${stage.count}</div>
+        <div class="funnel-drop">${stage.drop_off_pct > 0 ? '▼' + stage.drop_off_pct + '%' : ''}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderAnomalies(data) {
+    const container = document.getElementById('anomalies-container');
+    if (!data.anomalies || data.anomalies.length === 0) {
+      container.innerHTML = `
+        <div class="error-state">
+          <div class="icon">✅</div>
+          <p>All systems normal</p>
+        </div>`;
+      return;
+    }
+    container.innerHTML = data.anomalies.map(a => `
+      <div class="anomaly-item ${a.severity}">
+        <div>
+          <div><span class="anomaly-badge ${a.severity}">${a.severity}</span>
+            <span class="anomaly-badge" style="background:rgba(255,255,255,0.05);color:var(--text-muted);margin-left:4px;">${a.anomaly_type}</span>
+          </div>
+          <div class="anomaly-detail" style="margin-top:8px;">${a.detail}</div>
+          <div class="anomaly-action">💡 ${a.suggested_action}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderHeatmap(data) {
+    const container = document.getElementById('heatmap-container');
+    const confEl = document.getElementById('heatmap-confidence');
+    if (!data.zones || data.zones.length === 0) {
+      container.innerHTML = '<div class="error-state" style="grid-column:1/-1;"><div class="icon">🗺️</div><p>No zone data yet</p></div>';
+      return;
+    }
+    confEl.textContent = data.data_confidence ? '' : '⚠️ Low confidence: fewer than 20 sessions';
+    container.innerHTML = data.zones.slice(0, 12).map(z => {
+      const color = heatColor(z.heat_score);
+      return `
+        <div class="heat-zone" style="background:${color}18;border-color:${color}30;" title="${z.zone_name}: ${z.visit_frequency} visits, avg ${fmtMs(z.avg_dwell_ms)} dwell">
+          <div class="heat-zone-name">${z.zone_name}</div>
+          <div class="heat-score-bar" style="background:${color};opacity:0.7;"></div>
+          <div class="heat-score-value" style="color:${color};">${z.heat_score.toFixed(0)}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderDwell(metrics) {
+    const container = document.getElementById('dwell-container');
+    const zones = metrics.avg_dwell_per_zone;
+    if (!zones || zones.length === 0) {
+      container.innerHTML = '<div class="error-state"><div class="icon">⏱️</div><p>No dwell data yet</p></div>';
+      return;
+    }
+    const sorted = [...zones].sort((a, b) => b.avg_dwell_ms - a.avg_dwell_ms).slice(0, 8);
+    container.innerHTML = sorted.map(z => `
+      <div class="dwell-row">
+        <div class="dwell-zone">${z.zone_id.replace(/_/g, ' ')}</div>
+        <div class="dwell-time">${fmtMs(z.avg_dwell_ms)}</div>
+      </div>`).join('');
+  }
+
+  async function refresh() {
+    try {
+      const [metrics, funnel, heatmap, anomalies] = await Promise.all([
+        fetchJSON(`/stores/${STORE_ID}/metrics`),
+        fetchJSON(`/stores/${STORE_ID}/funnel`),
+        fetchJSON(`/stores/${STORE_ID}/heatmap`),
+        fetchJSON(`/stores/${STORE_ID}/anomalies`),
+      ]);
+
+      setStatus('', 'Live');
+
+      // KPIs
+      animateValue(document.getElementById('kpi-visitors'), metrics.unique_visitors);
+      animateValue(document.getElementById('kpi-conversion'), fmtPct(metrics.conversion_rate));
+      animateValue(document.getElementById('kpi-queue'), metrics.queue_depth_current);
+      animateValue(document.getElementById('kpi-abandon'), fmtPct(metrics.abandonment_rate));
+
+      renderFunnel(funnel);
+      renderAnomalies(anomalies);
+      renderHeatmap(heatmap);
+      renderDwell(metrics);
+
+      document.getElementById('last-updated').textContent =
+        'Last updated: ' + new Date().toLocaleTimeString();
+
+    } catch (err) {
+      setStatus('error', 'API Disconnected');
+      console.error('Dashboard error:', err);
+    }
+  }
+
+  // Initial load
+  refresh();
+  
+  // Refresh loop for API
+  setInterval(refresh, REFRESH_MS);
+
+  // Refresh loop for images (1 fps) graceful updates
+  setInterval(() => {
+    const t = new Date().getTime();
+    const cameras = [
+      { id: 'feed-entry', file: 'CAM_ENTRY_01' },
+      { id: 'feed-floor1', file: 'CAM_FLOOR_01' },
+      { id: 'feed-billing', file: 'CAM_BILLING_01' },
+      { id: 'feed-floor2', file: 'CAM_FLOOR_02' },
+      { id: 'feed-floor3', file: 'CAM_FLOOR_03' }
+    ];
+    
+    cameras.forEach(cam => {
+      const el = document.getElementById(cam.id);
+      if (el) {
+        // Load image in background to prevent flickering error icons
+        const bgImg = new Image();
+        bgImg.onload = () => { el.src = bgImg.src; };
+        bgImg.src = `/feed_${cam.file}.jpg?t=${t}`;
+      }
+    });
+  }, 1000);
+</script>
+</body>
+</html>

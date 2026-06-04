@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+WORKDIR /pipeline
+
+# Install system dependencies for OpenCV
+RUN apt-get update && apt-get install -y \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    libgl1-mesa-glx \
+    ffmpeg \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY pipeline/requirements.txt .
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy pipeline code
+COPY pipeline/ ./pipeline/
+COPY data/ /data/
+
+# Pre-download YOLOv8 model weights
+RUN python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
+
+CMD ["python", "pipeline/detect.py", "--help"]

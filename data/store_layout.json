@@ -1,0 +1,267 @@
+{
+  "store_id": "STORE_BLR_001",
+  "store_name": "Brigade_Bangalore",
+  "city": "Bangalore",
+  "address": "Brigade Road, Bangalore",
+  "pos_store_id": "ST1008",
+  "open_hours": {
+    "open": "11:00",
+    "close": "22:00"
+  },
+  "cameras": [
+    {
+      "camera_id": "CAM_ENTRY_01",
+      "camera_file": "CAM 1.mp4",
+      "type": "entry_exit",
+      "description": "Main entry/exit door camera — monitors customer flow in and out",
+      "entry_line": {
+        "comment": "Virtual line at the store entrance. Direction determined by Y-velocity.",
+        "x1_pct": 0.0,
+        "y1_pct": 0.5,
+        "x2_pct": 1.0,
+        "y2_pct": 0.5,
+        "inbound_direction": "down"
+      }
+    },
+    {
+      "camera_id": "CAM_FLOOR_01",
+      "camera_file": "CAM 2.mp4",
+      "type": "main_floor",
+      "description": "Main floor (F.O.H) coverage — wide angle covering center and brand shelves"
+    },
+    {
+      "camera_id": "CAM_BILLING_01",
+      "camera_file": "CAM 3.mp4",
+      "type": "billing",
+      "description": "Cash counter / billing area camera"
+    },
+    {
+      "camera_id": "CAM_FLOOR_02",
+      "camera_file": "CAM 4.mp4",
+      "type": "supplemental",
+      "description": "Supplemental floor coverage — south wall brands"
+    },
+    {
+      "camera_id": "CAM_FLOOR_03",
+      "camera_file": "CAM 5.mp4",
+      "type": "supplemental",
+      "description": "Supplemental floor coverage — north wall brands and PMU station"
+    }
+  ],
+  "zones": [
+    {
+      "zone_id": "ENTRY_EXIT",
+      "zone_name": "Entry / Exit",
+      "sku_zone": null,
+      "type": "entry_exit",
+      "camera_ids": ["CAM_ENTRY_01"],
+      "bbox_pct": {"x1": 0.0, "y1": 0.0, "x2": 0.15, "y2": 1.0},
+      "description": "Main entrance/exit area"
+    },
+    {
+      "zone_id": "EB_KOREAN",
+      "zone_name": "EB Korean",
+      "sku_zone": "EB Korean",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_01"],
+      "bbox_pct": {"x1": 0.0, "y1": 0.0, "x2": 0.12, "y2": 0.2},
+      "description": "EB Korean brand shelf — north wall, leftmost"
+    },
+    {
+      "zone_id": "THE_FACE_SHOP",
+      "zone_name": "The Face Shop",
+      "sku_zone": "The Face Shop",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_01"],
+      "bbox_pct": {"x1": 0.12, "y1": 0.0, "x2": 0.22, "y2": 0.2},
+      "description": "The Face Shop brand shelf — north wall"
+    },
+    {
+      "zone_id": "GOOD_VIBES",
+      "zone_name": "Good Vibes",
+      "sku_zone": "Good Vibes",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_01"],
+      "bbox_pct": {"x1": 0.22, "y1": 0.0, "x2": 0.32, "y2": 0.2},
+      "description": "Good Vibes brand shelf — north wall"
+    },
+    {
+      "zone_id": "DERMDOC",
+      "zone_name": "DermDoc",
+      "sku_zone": "DermDoc",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_01"],
+      "bbox_pct": {"x1": 0.32, "y1": 0.0, "x2": 0.42, "y2": 0.2},
+      "description": "DermDoc brand shelf — north wall"
+    },
+    {
+      "zone_id": "MINIMALIST",
+      "zone_name": "Minimalist",
+      "sku_zone": "Minimalist",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_01"],
+      "bbox_pct": {"x1": 0.42, "y1": 0.0, "x2": 0.52, "y2": 0.2},
+      "description": "Minimalist brand shelf — north wall"
+    },
+    {
+      "zone_id": "AQUALOGICA",
+      "zone_name": "Aqualogica",
+      "sku_zone": "Aqualogica",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_01"],
+      "bbox_pct": {"x1": 0.52, "y1": 0.0, "x2": 0.62, "y2": 0.2},
+      "description": "Aqualogica brand shelf — north wall"
+    },
+    {
+      "zone_id": "LAKME_SKIN",
+      "zone_name": "Lakme Skin",
+      "sku_zone": "Lakme Skin",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_01"],
+      "bbox_pct": {"x1": 0.62, "y1": 0.0, "x2": 0.73, "y2": 0.2},
+      "description": "Lakme Skin brand shelf — north wall"
+    },
+    {
+      "zone_id": "ACCESSORIES",
+      "zone_name": "Accessories",
+      "sku_zone": "Accessories",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_01"],
+      "bbox_pct": {"x1": 0.73, "y1": 0.0, "x2": 0.85, "y2": 0.2},
+      "description": "Accessories section — north wall"
+    },
+    {
+      "zone_id": "FRAGRANCE",
+      "zone_name": "Fragrance",
+      "sku_zone": "Fragrance",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_01"],
+      "bbox_pct": {"x1": 0.18, "y1": 0.35, "x2": 0.28, "y2": 0.65},
+      "description": "Fragrance counter — center floor"
+    },
+    {
+      "zone_id": "NAIL_UNIT",
+      "zone_name": "Nail Unit",
+      "sku_zone": "Nail Unit",
+      "type": "service_zone",
+      "camera_ids": ["CAM_FLOOR_01"],
+      "bbox_pct": {"x1": 0.25, "y1": 0.3, "x2": 0.33, "y2": 0.65},
+      "description": "Nail art / nail care service unit"
+    },
+    {
+      "zone_id": "FOH_CENTER",
+      "zone_name": "Main Floor (F.O.H)",
+      "sku_zone": "FOH",
+      "type": "floor",
+      "camera_ids": ["CAM_FLOOR_01", "CAM_FLOOR_02"],
+      "bbox_pct": {"x1": 0.28, "y1": 0.2, "x2": 0.72, "y2": 0.8},
+      "description": "Front-of-house main floor space with makeup units"
+    },
+    {
+      "zone_id": "MAKEUP_UNIT",
+      "zone_name": "Makeup Unit",
+      "sku_zone": "Makeup",
+      "type": "demo_unit",
+      "camera_ids": ["CAM_FLOOR_01"],
+      "bbox_pct": {"x1": 0.38, "y1": 0.35, "x2": 0.62, "y2": 0.65},
+      "description": "Central makeup demonstration unit"
+    },
+    {
+      "zone_id": "MAYBELLINE",
+      "zone_name": "Maybelline",
+      "sku_zone": "Maybelline",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_02"],
+      "bbox_pct": {"x1": 0.0, "y1": 0.78, "x2": 0.12, "y2": 1.0},
+      "description": "Maybelline brand shelf — south wall"
+    },
+    {
+      "zone_id": "FACES_CANADA",
+      "zone_name": "Faces Canada",
+      "sku_zone": "Faces Canada",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_02"],
+      "bbox_pct": {"x1": 0.12, "y1": 0.78, "x2": 0.22, "y2": 1.0},
+      "description": "Faces Canada brand shelf — south wall"
+    },
+    {
+      "zone_id": "LAKME_MAKEUP",
+      "zone_name": "Lakme Makeup",
+      "sku_zone": "Lakme",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_02"],
+      "bbox_pct": {"x1": 0.22, "y1": 0.78, "x2": 0.32, "y2": 1.0},
+      "description": "Lakme makeup brand shelf — south wall"
+    },
+    {
+      "zone_id": "COLORBAR",
+      "zone_name": "Colorbar + Sugar",
+      "sku_zone": "Colorbar",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_02"],
+      "bbox_pct": {"x1": 0.32, "y1": 0.78, "x2": 0.44, "y2": 1.0},
+      "description": "Colorbar + Sugar brand shelf — south wall"
+    },
+    {
+      "zone_id": "SWISS_BEAUTY",
+      "zone_name": "Swiss Beauty",
+      "sku_zone": "Swiss Beauty",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_02"],
+      "bbox_pct": {"x1": 0.44, "y1": 0.78, "x2": 0.54, "y2": 1.0},
+      "description": "Swiss Beauty brand shelf — south wall"
+    },
+    {
+      "zone_id": "RENEE_NYBAE",
+      "zone_name": "Renee / NY Bae",
+      "sku_zone": "Renee",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_02"],
+      "bbox_pct": {"x1": 0.54, "y1": 0.78, "x2": 0.64, "y2": 1.0},
+      "description": "Renee + NY Bae brand shelf — south wall"
+    },
+    {
+      "zone_id": "ALPS_GOODNESS",
+      "zone_name": "Alps Goodness",
+      "sku_zone": "Alps Goodness",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_02"],
+      "bbox_pct": {"x1": 0.64, "y1": 0.78, "x2": 0.74, "y2": 1.0},
+      "description": "Alps Goodness brand shelf — south wall"
+    },
+    {
+      "zone_id": "STREAX",
+      "zone_name": "Streax",
+      "sku_zone": "Streax",
+      "type": "brand_shelf",
+      "camera_ids": ["CAM_FLOOR_02"],
+      "bbox_pct": {"x1": 0.74, "y1": 0.78, "x2": 0.84, "y2": 1.0},
+      "description": "Streax brand shelf — south wall"
+    },
+    {
+      "zone_id": "PMU_STATION",
+      "zone_name": "PMU Station",
+      "sku_zone": "PMU",
+      "type": "service_zone",
+      "camera_ids": ["CAM_FLOOR_03"],
+      "bbox_pct": {"x1": 0.86, "y1": 0.55, "x2": 1.0, "y2": 0.9},
+      "description": "Permanent Makeup (PMU) service station — far right"
+    },
+    {
+      "zone_id": "CASH_COUNTER",
+      "zone_name": "Cash Counter / Billing",
+      "sku_zone": "BILLING",
+      "type": "billing",
+      "camera_ids": ["CAM_BILLING_01"],
+      "bbox_pct": {"x1": 0.78, "y1": 0.25, "x2": 0.95, "y2": 0.7},
+      "description": "Main cash counter / POS billing area"
+    }
+  ],
+  "billing_zone_ids": ["CASH_COUNTER"],
+  "staff_uniform_colors": {
+    "description": "Purplle store staff typically wear purple/violet uniforms",
+    "hsv_ranges": [
+      {"hue_low": 120, "hue_high": 160, "sat_low": 50, "sat_high": 255, "val_low": 50, "val_high": 255}
+    ]
+  }
+}
