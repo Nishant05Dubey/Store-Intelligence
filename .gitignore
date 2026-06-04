@@ -9,6 +9,8 @@ env/
 .pytest_cache/
 .coverage
 htmlcov/
-# Allow the database to be committed for deployment purposes
-# dashboard/feed_*.jpg (Un-ignored so static snapshots can be deployed to cloud)
+data/*.db
+data/*.db-wal
+data/*.db-shm
+dashboard/feed_*.jpg
 *.mp4

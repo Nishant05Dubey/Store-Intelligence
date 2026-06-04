@@ -263,11 +263,53 @@ async def get_health():
 
 
 # ---------------------------------------------------------------------------
-# End of API definitions
+# Root
 # ---------------------------------------------------------------------------
 
-from fastapi.staticfiles import StaticFiles
-import os
 
-if os.path.exists("dashboard"):
-    app.mount("/", StaticFiles(directory="dashboard", html=True), name="dashboard")
+@app.get("/", include_in_schema=False)
+async def root():
+    return {
+        "service": "Store Intelligence API",
+        "version": "1.0.0",
+        "docs": "/docs",
+    }
+
+
+# ---------------------------------------------------------------------------
+# POST /process_video
+# ---------------------------------------------------------------------------
+
+class ProcessVideoRequest(BaseModel):
+    video_path: str
+    camera_id: str
+    store_id: str = "STORE_BLR_001"
+    clip_start: str = "2026-04-10T11:00:00Z"
+
+@app.post("/process_video", summary="Process a new video dynamically")
+async def process_video(req: ProcessVideoRequest):
+    import subprocess
+    import os
+    
+    # Strip any accidental quotes from user input
+    video_path = req.video_path.strip('\"\'')
+    
+    # Launch the detect.py pipeline in the background
+    cmd = [
+        sys.executable,
+        "pipeline/detect.py",
+        "--video", video_path,
+        "--camera-id", req.camera_id,
+        "--store-id", req.store_id,
+        "--clip-start", req.clip_start,
+        "--layout", "data/store_layout.json",
+        "--api-url", f"http://127.0.0.1:{os.getenv('UVICORN_PORT', '8000')}"
+    ]
+    
+    try:
+        subprocess.Popen(cmd, cwd=os.getcwd())
+        return {"status": "started", "camera_id": req.camera_id, "message": f"Processing started for {req.camera_id}"}
+    except Exception as e:
+        logger.error("process_video.failed", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
