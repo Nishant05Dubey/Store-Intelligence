@@ -434,7 +434,7 @@ def _emit_and_log(emitter: EventEmitter, jsonl_file, event_kind: str, **kwargs) 
             "is_staff": kwargs.get("is_staff"),
         }
         jsonl_file.write(json.dumps(entry) + "\n")
-
+        jsonl_file.flush()
 
 # ---------------------------------------------------------------------------
 # CLI entry point
