@@ -16,6 +16,7 @@ RUN pip install --no-cache-dir -r app/requirements.txt
 COPY app/ ./app/
 COPY pipeline/ ./pipeline/
 COPY data/ /data/
+COPY dashboard/ ./dashboard/
 
 # Create data directory for SQLite
 RUN mkdir -p /data
