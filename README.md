@@ -1,7 +1,58 @@
-# Store Intelligence API
+# Store Intelligence API 🛍️ 📹
 
 **Purplle Tech Challenge 2026 — Round 2**  
-Real-time retail analytics from raw CCTV footage → live store metrics.
+*Turning raw offline CCTV footage into live, e-commerce style retail analytics.*
+
+## 📖 About The Project
+
+Physical retail stores have a massive analytics blind spot compared to e-commerce websites. While a website tracks every click, bounce, and conversion funnel step, physical stores often only know two things: footfall (from a door counter) and sales (from the POS). 
+
+**Store Intelligence** bridges this gap. It is an end-to-end AI system that ingests raw CCTV video feeds, detects and tracks shoppers (while actively ignoring staff in uniform), maps their paths across physical store zones, and streams these events in real-time to a live dashboard. For the first time, offline stores get a live **Conversion Funnel**, **Zone Heatmaps**, and **Active Anomaly Alerts**.
+
+---
+
+## 🧠 System Architecture & Workflow
+
+The system is split into two perfectly decoupled layers: an AI Computer Vision pipeline and a real-time FastAPI backend.
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│               DETECTION LAYER (pipeline/)               │
+│  ┌──────────┐   ┌──────────────┐   ┌────────────────┐   │
+│  │ CCTV     │──▶│  YOLOv8n     │──▶│   ByteTrack    │   │
+│  │ (CAM1-5) │   │  Person Det. │   │   (track_id)   │   │
+│  └──────────┘   └──────────────┘   └───────┬────────┘   │
+│  ┌─────────────────────────────────────────▼──────────┐ │
+│  │               PersonTracker (Re-ID)                │ │
+│  │  • Color histogram Re-ID (384-dim feature vector)  │ │
+│  │  • Cross-camera deduplication & re-entry tracking  │ │
+│  └─────────────────────────────────────────┬──────────┘ │
+│  ┌────────────────┐  ┌─────────────────────▼──────────┐ │
+│  │ StaffDetector  │  │      ZoneMapper                │ │
+│  │ (Color Hist +  │  │  (bbox_pct polygon mapping)    │ │
+│  │ Groq Vision)   │  │  Centroid → Physical zone_id   │ │
+│  └────────────────┘  └────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+                          │ HTTP POST /events/ingest (Batch)
+┌─────────────────────────▼───────────────────────────────┐
+│                  API LAYER (app/main.py)                │
+│  ┌─────────────┐   ┌──────────────┐   ┌─────────────┐   │
+│  │ metrics.py  │   │ anomalies.py │   │  funnel.py  │   │
+│  └─────────────┘   └─────────────┘   └─────────────┘   │
+│                         │                               │
+│                ┌────────▼────────┐                      │
+│                │  SQLite (WAL)   │                      │
+│                │  (Live Events)  │                      │
+│                └─────────────────┘                      │
+└─────────────────────────────────────────────────────────┘
+```
+
+**How the Workflow operates:**
+1. **Detection & Tracking:** YOLOv8 detects people at ~30 FPS, and ByteTrack handles partial occlusions and ID assignment frame-to-frame.
+2. **Re-ID:** If a person leaves CAM 1 and enters CAM 2, the `PersonTracker` re-identifies them using a 384-dimensional color histogram of their clothing.
+3. **Staff Exclusion:** The system extracts the torso color. If it matches Purplle's purple uniform, they are flagged as staff. For ambiguous lighting, it falls back to a fast call to `Groq Vision (llama-3.2-11b-vision-preview)` for a second opinion. Staff are ignored in all analytics.
+4. **Zone Mapping & Emission:** Bounding box coordinates are mapped to 2D store layout polygons. Transitions are batched into HTTP requests and sent to the API.
+5. **Real-time Analytics:** The FastAPI backend stores events in a highly concurrent SQLite WAL database and instantly computes Live Metrics, Funnels, and Anomalies for the frontend dashboard.
 
 ---
 
@@ -37,6 +88,35 @@ docker compose up -d
 
 # 4. Run the detection pipeline against the CCTV clips
 FOOTAGE_DIR="/path/to/CCTV Footage" docker compose run --rm pipeline
+```
+
+---
+
+## 🐍 Manual Setup (Standard Python Environment)
+
+If you prefer running the code directly on your system without Docker or the `.bat` file:
+
+```bash
+# 1. Clone and navigate to the project
+git clone <repo-url> && cd store-intelligence
+
+# 2. Create and activate a virtual environment
+python -m venv venv
+# On Windows: venv\Scripts\activate
+# On Mac/Linux: source venv/bin/activate
+
+# 3. Install dependencies
+pip install -r app/requirements.txt
+pip install -r pipeline/requirements.txt
+
+# 4. Start the FastAPI Backend
+uvicorn app.main:app --host 127.0.0.1 --port 8000 &
+
+# 5. Start the Live Dashboard
+python -m http.server 3000 --directory dashboard &
+
+# 6. Run the AI Pipeline
+python pipeline/detect.py --video "/path/to/CCTV Footage/CAM 1.mp4" --camera-id CAM_ENTRY_01 --store-id STORE_BLR_001 --clip-start 2026-04-10T11:00:00Z --layout data/store_layout.json
 ```
 
 The API is available at **http://localhost:8000** | Docs at **http://localhost:8000/docs**
